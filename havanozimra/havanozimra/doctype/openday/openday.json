@@ -1,0 +1,126 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2025-05-11 15:02:46.592962",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_u2c4",
+  "column_break_ddnu",
+  "fiscal_day",
+  "currency",
+  "daily_total",
+  "invoice_type",
+  "column_break_qcxb",
+  "vatable_net_amount",
+  "vatable_tax",
+  "nonvatable_net",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_u2c4",
+   "fieldtype": "Section Break",
+   "label": "Open Fiscal Day"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "column_break_ddnu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "System Define",
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "label": "Currency",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "daily_total",
+   "fieldtype": "Data",
+   "label": "Daily Total"
+  },
+  {
+   "fieldname": "column_break_qcxb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "vatable_net_amount",
+   "fieldtype": "Data",
+   "label": "Vatable Net Amount"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "vatable_tax",
+   "fieldtype": "Data",
+   "label": "Vatable Tax"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "nonvatable_net",
+   "fieldtype": "Data",
+   "label": "NonVatable Net"
+  },
+  {
+   "default": "System Define",
+   "fieldname": "fiscal_day",
+   "fieldtype": "Data",
+   "label": "Fiscal Day",
+   "link_filters": "[[\"Zimra Account\",\"fiscal_day\",\">=\",\"1\"]]",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "FISCALINVOICE",
+   "fieldname": "invoice_type",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Invoice Type"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Openday",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-05-13 20:46:36.808860",
+ "modified_by": "Administrator",
+ "module": "Havanozimra",
+ "name": "Openday",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

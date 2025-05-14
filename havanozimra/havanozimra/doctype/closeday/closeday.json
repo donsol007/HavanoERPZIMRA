@@ -1,0 +1,62 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-12 22:16:11.964528",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "close_fiscal_day_section",
+  "date",
+  "column_break_iqyw",
+  "device_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "close_fiscal_day_section",
+   "fieldtype": "Section Break",
+   "label": "Close Fiscal Day"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_iqyw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "FiscalDayOpened",
+   "fieldname": "device_status",
+   "fieldtype": "Data",
+   "label": "Device Status",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-05-13 19:16:16.777230",
+ "modified_by": "Administrator",
+ "module": "Havanozimra",
+ "name": "Closeday",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

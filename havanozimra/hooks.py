@@ -145,6 +145,22 @@ app_license = "mit"
 # 	}
 # }
 
+doc_events = {
+    # use "*" to apply to all DocTypes, or replace with "Your DocType"
+    "Sales Invoice": {
+        # available events: before_insert, validate, on_update, on_submit, on_cancel, on_trash, etc.
+        "on_submit": "havanozimra.havanozimra.controller.HavanoZimra.send"
+    },
+    "Openday": {
+        "before_save": "havanozimra.havanozimra.controller.HavanoZimra.openday"
+    },
+    "Closeday": {
+        "before_save": "havanozimra.havanozimra.controller.HavanoZimra.closeday"
+    }
+
+}
+
+
 # Scheduled Tasks
 # ---------------
 

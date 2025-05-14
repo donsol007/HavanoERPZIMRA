@@ -1,0 +1,209 @@
+{
+ "actions": [],
+ "allow_guest_to_view": 1,
+ "allow_rename": 1,
+ "autoname": "Accounts",
+ "creation": "2025-05-05 11:28:24.958785",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "account_information_section",
+  "account_tin",
+  "account_vat",
+  "activation_key",
+  "device_serialno",
+  "device_id",
+  "server_url",
+  "device_serial",
+  "column_break_ryvp",
+  "verify_server",
+  "fiscal_day",
+  "receipt_globalno",
+  "receiptcounter",
+  "account_cert",
+  "account_key",
+  "zimra_tax_information_section",
+  "tax5",
+  "tax15",
+  "column_break_wqyj",
+  "taxe",
+  "tax0",
+  "other_information_section",
+  "fiscal_date",
+  "fiscaldaystatus",
+  "previous_receipt_hash"
+ ],
+ "fields": [
+  {
+   "fieldname": "account_tin",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "TIN",
+   "reqd": 1
+  },
+  {
+   "fieldname": "account_vat",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "VAT",
+   "reqd": 1
+  },
+  {
+   "fieldname": "activation_key",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Activation Key",
+   "reqd": 1
+  },
+  {
+   "fieldname": "device_serialno",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Device Serial No.",
+   "reqd": 1
+  },
+  {
+   "fieldname": "device_id",
+   "fieldtype": "Data",
+   "label": "Device ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "server_url",
+   "fieldtype": "Data",
+   "label": "Zimra Server URL",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_ryvp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "verify_server",
+   "fieldtype": "Data",
+   "label": "Verification Server URL",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fiscal_day",
+   "fieldtype": "Data",
+   "label": "Fiscal Day No.",
+   "reqd": 1
+  },
+  {
+   "fieldname": "receipt_globalno",
+   "fieldtype": "Data",
+   "label": "Global Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "receiptcounter",
+   "fieldtype": "Data",
+   "label": "Receipt Counter No.",
+   "reqd": 1
+  },
+  {
+   "fieldname": "account_cert",
+   "fieldtype": "Attach",
+   "label": "Certificate",
+   "reqd": 1
+  },
+  {
+   "fieldname": "account_key",
+   "fieldtype": "Attach",
+   "label": "Key",
+   "reqd": 1
+  },
+  {
+   "fieldname": "zimra_tax_information_section",
+   "fieldtype": "Section Break",
+   "label": "ZIMRA TAX Information"
+  },
+  {
+   "fieldname": "tax5",
+   "fieldtype": "Data",
+   "label": "Tax5",
+   "length": 3
+  },
+  {
+   "fieldname": "tax15",
+   "fieldtype": "Data",
+   "label": "Tax15",
+   "length": 3
+  },
+  {
+   "fieldname": "column_break_wqyj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "taxe",
+   "fieldtype": "Data",
+   "label": "TaxE",
+   "length": 3
+  },
+  {
+   "fieldname": "tax0",
+   "fieldtype": "Data",
+   "label": "Tax0",
+   "length": 3
+  },
+  {
+   "fieldname": "account_information_section",
+   "fieldtype": "Section Break",
+   "label": "Account Information"
+  },
+  {
+   "fieldname": "other_information_section",
+   "fieldtype": "Section Break",
+   "label": "Other Information"
+  },
+  {
+   "fieldname": "fiscal_date",
+   "fieldtype": "Data",
+   "label": "Fiscal Date"
+  },
+  {
+   "fieldname": "previous_receipt_hash",
+   "fieldtype": "Data",
+   "label": "Previous Receipt Hash",
+   "width": "100%"
+  },
+  {
+   "fieldname": "fiscaldaystatus",
+   "fieldtype": "Data",
+   "label": "FiscalDayStatus"
+  },
+  {
+   "fieldname": "device_serial",
+   "fieldtype": "Data",
+   "label": "Device EDF Serial",
+   "length": 8,
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-05-13 21:58:00.924694",
+ "modified_by": "Administrator",
+ "module": "Havanozimra",
+ "name": "Zimra Account",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
