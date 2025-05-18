@@ -253,7 +253,8 @@ def openday(docname):
    
     # doc.fiscal_day = int(fd) + 1
     # doc.currency = default_currency
-    # msg = send_private_request(ReqType.Status, "GET")
+    msg = send_private_request(ReqType.Config, "GET")
+    time.sleep(5)
     # if msg == "FiscalDayOpened":
     #     frappe.throw("Fiscal Day already opened, please close fiscal day")
     resp = open_fiscal_day()
@@ -840,7 +841,7 @@ def send_invoice(AddCustomer, InvoiceFlag, Currency, BranchName, InvoiceNumber,
             nonvatable = -nonvatable
         create_zreport(get_config_value("fiscal_day"),receipt_type, Currency, round(sales_plus_tax,2), round(sales_tax,2), round(tax_amount,2), round(nonvatable,2))
 
-    return json.dumps(response_data, indent=4)
+    return result
 
 #AddCustomer, InvoiceFlag, Currency, BranchName, InvoiceNumber,
                        #CustomerName, TradeName, CustomerVATNumber, CustomerAddress,
@@ -1005,7 +1006,9 @@ def send(doc, method):
         cus_vat_no,cus_address,cus_no,cus_tin,cus_province,
          cus_street,cus_house_no, customer_city,customer_email,
         invoice_amount, "0.00", "", original_invoiceno, invoice_receiptno, itm)
-    frappe.msgprint(f"Response: {response_msg}")
+    if response_msg=="Success":
+        frappe.show_alert("Invoice successfully sent to zimra",5)
+    #frappe.msgprint(f"Response: {response_msg}")
     #frappe.throw(msg)
     
     #return ""
