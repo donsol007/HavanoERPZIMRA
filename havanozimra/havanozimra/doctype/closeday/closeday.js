@@ -31,7 +31,7 @@ frappe.ui.form.on('Closeday', {
                             });
                             frm.refresh();
                         }
-                    }, 800); // Adjust delay time here (in milliseconds)
+                    }, 700); // Adjust delay time here (in milliseconds)
                 },
                 error: function(error) {
                     setTimeout(() => {
@@ -41,7 +41,7 @@ frappe.ui.form.on('Closeday', {
                             indicator: 'red',
                             message: "Error closing day: " + error
                         });
-                    }, 800);
+                    }, 700);
                 }
             });
         });

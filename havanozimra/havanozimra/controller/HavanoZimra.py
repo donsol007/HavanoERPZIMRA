@@ -217,18 +217,20 @@ def send_private_request(my_req_type: ReqType, req_method: str) -> str:
 
             elif my_req_type == ReqType.Config:
                 frappe.log_error(frappe.get_traceback(),"Config Information requested")
-                for tax in payload.get("applicableTaxes", []):
+                taxes = payload.get("applicableTaxes", [])
+                result = [{"taxName": tax["taxName"],"taxID": tax["taxID"],"taxPercent": tax.get("taxPercent")} for tax in taxes]
+                for tax in result:
                     tax_id   = str(tax.get("taxID", ""))
-                    tax_pct  = tax.get("taxPercent", None)
+                    tax_pct  = tax.get("taxPercent")
+                    print(tax_pct)
                     if tax_pct is None:
                         update_config_value("taxe", tax_id)
-                    else:
-                        if str(tax_pct) == "0":
-                            update_config_value("tax0", tax_id)
-                        elif str(tax_pct) == "15":
-                            update_config_value("tax15", tax_id)
-                        elif str(tax_pct) == "5":
-                            update_config_value("tax5", tax_id)
+                    if str(tax_pct) == "0.0":
+                        update_config_value("tax0", tax_id)
+                    if str(tax_pct) == "15.0":
+                        update_config_value("tax15", tax_id)
+                    if str(tax_pct) == "5.0":
+                        update_config_value("tax5", tax_id)
                 return text
 
             elif my_req_type == ReqType.Ping:
@@ -246,19 +248,12 @@ def send_private_request(my_req_type: ReqType, req_method: str) -> str:
 #========= OPEN FISCAL DAY ============
 @frappe.whitelist()
 def openday(docname):
-    # if getattr(doc.flags, 'skip_zreport_hooks', False):
-    #     return
-    # fd = frappe.db.get_single_value("Zimra Account", "fiscal_day") #frappe.get_single("Zimra Account")
-    # default_currency = frappe.db.get_single_value("System Settings", "currency")  #settings = frappe.get_single("System Settings")
-   
-    # doc.fiscal_day = int(fd) + 1
-    # doc.currency = default_currency
+    
     msg = send_private_request(ReqType.Config, "GET")
-    time.sleep(5)
-    # if msg == "FiscalDayOpened":
-    #     frappe.throw("Fiscal Day already opened, please close fiscal day")
+    time.sleep(8)
+
     resp = open_fiscal_day()
-    time.sleep(10)
+    time.sleep(6)
     return resp
     #frappe.throw(msg)
 
@@ -298,7 +293,7 @@ def open_fiscal_day() -> str:
             payload = response.json()
             fiscal_day = str(payload["fiscalDayNo"])
             update_config_value("fiscal_day", fiscal_day)
-            update_config_value("receipt_globalno", "0")
+            update_config_value("receiptcounter", "0")
             update_config_value("previous_receipt_hash", "")
             update_config_value("fiscal_date", openday_date)
             update_config_value("fiscaldaystatus", "FiscalDayOpened")
@@ -741,11 +736,11 @@ def send_invoice(AddCustomer, InvoiceFlag, Currency, BranchName, InvoiceNumber,
     for rt in filtered_taxes:
         tax_code = rt.taxCode
         tax_percent = get_tax_percent_formatted(rt)
-        tax_amount = float(rt.taxAmount) * 100
-        tax_amount = round(tax_amount)
+        stax_amount = float(rt.taxAmount) * 100
+        stax_amount = round(stax_amount)
         #sales_with_tax = int(rt.salesAmountWithTax * 100)
         sales_with_tax = int(round(rt.salesAmountWithTax * 100))
-        receipt_taxes_str += f"{tax_code}{tax_percent}{tax_amount}{sales_with_tax}"
+        receipt_taxes_str += f"{tax_code}{tax_percent}{stax_amount}{sales_with_tax}"
     
     print(receipt_taxes_str)
     # return ""
@@ -839,7 +834,7 @@ def send_invoice(AddCustomer, InvoiceFlag, Currency, BranchName, InvoiceNumber,
             tax_amount = -tax_amount
             sales_tax = -sales_tax
             nonvatable = -nonvatable
-        create_zreport(get_config_value("fiscal_day"),receipt_type, Currency, round(sales_plus_tax,2), round(sales_tax,2), round(tax_amount,2), round(nonvatable,2))
+        create_zreport(get_config_value("fiscal_day"),receipt_type, Currency, sales_plus_tax, sales_tax, tax_amount, nonvatable)
 
     return result
 
