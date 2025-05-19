@@ -1006,8 +1006,10 @@ def send(doc, method):
         cus_vat_no,cus_address,cus_no,cus_tin,cus_province,
          cus_street,cus_house_no, customer_city,customer_email,
         invoice_amount, "0.00", "", original_invoiceno, invoice_receiptno, itm)
-    if response_msg=="Success":
-        frappe.show_alert("Invoice successfully sent to zimra",5)
+    #if response_msg=="Success":
+        #frappe.show_alert('Invoice successfully sent to Zimra', 3);
+        #frappe.show_alert({message:__('Invoice successfully sent to Zimra')indicator:'green'}, 5);
+        
     #frappe.msgprint(f"Response: {response_msg}")
     #frappe.throw(msg)
     
