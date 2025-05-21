@@ -213,16 +213,18 @@ def send_private_request(my_req_type: ReqType, req_method: str) -> str:
             elif my_req_type == ReqType.Status:
                 frappe.log_error(frappe.get_traceback(),"Status Request sent")
                 day_status = payload.get("fiscalDayStatus", "")
+                print(payload)
                 return day_status
 
             elif my_req_type == ReqType.Config:
                 frappe.log_error(frappe.get_traceback(),"Config Information requested")
+                #print(payload)
                 taxes = payload.get("applicableTaxes", [])
                 result = [{"taxName": tax["taxName"],"taxID": tax["taxID"],"taxPercent": tax.get("taxPercent")} for tax in taxes]
                 for tax in result:
                     tax_id   = str(tax.get("taxID", ""))
                     tax_pct  = tax.get("taxPercent")
-                    print(tax_pct)
+                    #print(tax_pct)
                     if tax_pct is None:
                         update_config_value("taxe", tax_id)
                     if str(tax_pct) == "0.0":
@@ -345,19 +347,27 @@ def get_tax_percent_formatted(rt):
         return ""
     return f"{rt.taxPercent:.2f}"
 #========= ZREPORT ====================
-def create_zreport(fiscalday,invoice_type, currency, daily_total, vatable_net_amount, vatable_tax, nonvatable_net):
+def create_zreport(fiscalday,invoice_type, currency, daily_total, vatable_net_amount, vatable_tax, zero_vatable_net, exempt_vatable_net):
     # Adjust values based on invoice type
     if invoice_type == "FISCALINVOICE":
-        if nonvatable_net > 0:
-            vatable_net_amount = daily_total - nonvatable_net
+        vatable_net_amount = daily_total
+        if zero_vatable_net > 0:
+            vatable_net_amount -= zero_vatable_net
+
+        if exempt_vatable_net > 0:
+            vatable_net_amount -= exempt_vatable_net
+        
     else:  # e.g., CREDITNOTE
-        if abs(nonvatable_net) > 0:
-            vatable_net_amount = -(abs(daily_total) - abs(nonvatable_net))
+        vatable_net_amount = daily_total
+        if abs(zero_vatable_net) > 0:
+            vatable_net_amount = -(abs(vatable_net_amount) - abs(zero_vatable_net))
+        if abs(exempt_vatable_net) > 0:
+            vatable_net_amount = -(abs(vatable_net_amount) - abs(exempt_vatable_net))
 
     # Check for existing record in OpenDay
     existing = frappe.db.get_value(
         "Openday",
-        filters={"invoice_type": invoice_type, "currency": currency},fieldname="name"
+        filters={"invoice_type": invoice_type, "currency": currency, "fiscal_day": fiscalday},fieldname="name"
     )
 
     if existing:
@@ -366,7 +376,8 @@ def create_zreport(fiscalday,invoice_type, currency, daily_total, vatable_net_am
         doc.daily_total = "{:.2f}".format(float(doc.daily_total) + float(daily_total))
         doc.vatable_net_amount = "{:.2f}".format(float(doc.vatable_net_amount) + float(vatable_net_amount))
         doc.vatable_tax = "{:.2f}".format(float(doc.vatable_tax) + float(vatable_tax))
-        doc.nonvatable_net = "{:.2f}".format(float(doc.nonvatable_net) + float(nonvatable_net))
+        doc.zerononvatablenet = "{:.2f}".format(float(doc.zerononvatablenet) + float(zero_vatable_net))
+        doc.exemptnonvatablenet = "{:.2f}".format(float(doc.exemptnonvatablenet) + float(exempt_vatable_net))
         doc.fiscal_day = fiscalday
         doc.docstatus = 1
         doc.flags.skip_zreport_hooks = True
@@ -379,7 +390,8 @@ def create_zreport(fiscalday,invoice_type, currency, daily_total, vatable_net_am
         doc.daily_total = "{:.2f}".format(float(daily_total))
         doc.vatable_net_amount = "{:.2f}".format(float(vatable_net_amount))
         doc.vatable_tax = "{:.2f}".format(float(vatable_tax))
-        doc.nonvatable_net = "{:.2f}".format(float(nonvatable_net))
+        doc.zerononvatablenet = "{:.2f}".format(float(zero_vatable_net))
+        doc.exemptnonvatablenet = "{:.2f}".format(float(exempt_vatable_net))
         doc.fiscal_day = fiscalday
         doc.docstatus = 1
         doc.flags.skip_zreport_hooks = True
@@ -393,7 +405,7 @@ def process_eod_report(mycounters: list, fiscal_day: int) -> str:
     # Fetch records from Openday Doctype
     records = frappe.get_all("Openday", filters={"fiscal_day": fiscal_day}, fields=[
         "currency", "daily_total", "vatable_net_amount", "vatable_tax",
-        "nonvatable_net", "invoice_type"
+        "zerononvatablenet","exemptnonvatablenet", "invoice_type"
     ])
 
     if not records:
@@ -413,16 +425,27 @@ def process_eod_report(mycounters: list, fiscal_day: int) -> str:
         # FISCALINVOICE
         fiscal_records = [r for r in currency_records if r.invoice_type == "FISCALINVOICE"]
         for rec in fiscal_records:
+            # EXEMPT
+            if float(rec.exemptnonvatablenet or 0) != 0:
+                sb.append(f"SALEBYTAX{currency_name}{float(rec.exemptnonvatablenet) * 100:.0f}")
+                mycounters.append(FiscalCounter(
+                    fiscalCounterCurrency=currency_name,
+                    fiscalCounterTaxID=int(get_config_value("taxe")),
+                    fiscalCounterType="SALEBYTAX",
+                    fiscalCounterTaxPercent=None,
+                    fiscalCounterMoneyType=None,
+                    fiscalCounterValue=float(f"{float(rec.exemptnonvatablenet):.2f}")
+                ))
             # Non-VATable
-            if float(rec.nonvatable_net or 0) != 0:
-                sb.append(f"SALEBYTAX{currency_name}0.00{float(rec.nonvatable_net) * 100:.0f}")
+            if float(rec.zerononvatablenet or 0) != 0:
+                sb.append(f"SALEBYTAX{currency_name}0.00{float(rec.zerononvatablenet) * 100:.0f}")
                 mycounters.append(FiscalCounter(
                     fiscalCounterCurrency=currency_name,
                     fiscalCounterTaxID=int(get_config_value("tax0")),
                     fiscalCounterType="SALEBYTAX",
                     fiscalCounterTaxPercent=0.00,
                     fiscalCounterMoneyType=None,
-                    fiscalCounterValue=float(f"{float(rec.nonvatable_net):.2f}")
+                    fiscalCounterValue=float(f"{float(rec.zerononvatablenet):.2f}")
                 ))
             # VATable
             sb.append(f"SALEBYTAX{currency_name}15.00{float(rec.vatable_net_amount) * 100:.0f}")
@@ -447,15 +470,27 @@ def process_eod_report(mycounters: list, fiscal_day: int) -> str:
         # CREDITNOTE
         credit_records = [r for r in currency_records if r.invoice_type == "CREDITNOTE"]
         for rec in credit_records:
-            if float(rec.nonvatable_net or 0) != 0:
-                sb.append(f"CREDITNOTEBYTAX{currency_name}0.00{float(rec.nonvatable_net) * 100:.0f}")
+            #Exempt
+            if float(rec.exemptnonvatablenet or 0) != 0:
+                sb.append(f"CREDITNOTEBYTAX{currency_name}{float(rec.exemptnonvatablenet) * 100:.0f}")
+                mycounters.append(FiscalCounter(
+                    fiscalCounterCurrency=currency_name,
+                    fiscalCounterTaxID=int(get_config_value("taxe")),
+                    fiscalCounterType="CREDITNOTEBYTAX",
+                    fiscalCounterTaxPercent=None,
+                    fiscalCounterMoneyType=None,
+                    fiscalCounterValue=float(f"{float(rec.exemptnonvatablenet):.2f}")
+                ))
+            #Zero rated
+            if float(rec.zerononvatablenet or 0) != 0:
+                sb.append(f"CREDITNOTEBYTAX{currency_name}0.00{float(rec.zerononvatablenet) * 100:.0f}")
                 mycounters.append(FiscalCounter(
                     fiscalCounterCurrency=currency_name,
                     fiscalCounterTaxID=int(get_config_value("tax0")),
                     fiscalCounterType="CREDITNOTEBYTAX",
                     fiscalCounterTaxPercent=0.00,
                     fiscalCounterMoneyType=None,
-                    fiscalCounterValue=float(f"{float(rec.nonvatable_net):.2f}")
+                    fiscalCounterValue=float(f"{float(rec.zerononvatablenet):.2f}")
                 ))
 
             sb.append(f"CREDITNOTEBYTAX{currency_name}15.00{float(rec.vatable_net_amount) * 100:.0f}")
@@ -535,7 +570,7 @@ def close_fiscal_day():
         close_day_json_string = json.dumps(fiscal_day_obj.to_dict(), indent=4)
         
         zimra_url = f"{base_url}/Device/v1/{get_config_value('device_id')}/CloseDay"
-        print(zimra_url)
+        #print(close_day_json_string)
         # build SSL context and load your PFX
         ssl_ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
         ssl_ctx.load_cert_chain(certfile=get_pem_cert_path(), keyfile=get_private_key_path())
@@ -572,7 +607,7 @@ def close_fiscal_day():
 @frappe.whitelist()
 def closeday(docname):
     close_fiscal_day()
-    time.sleep(30)
+    time.sleep(15)
     msg = send_private_request(ReqType.Status, "GET")
     return msg
     #frappe.throw("Fiscal Day Status: " + msg)
@@ -621,7 +656,10 @@ def send_invoice(AddCustomer, InvoiceFlag, Currency, BranchName, InvoiceNumber,
 
     #check_havano_zimra_folder()
 
-    nonvatable = 0
+    zerononvatable = 0
+    exemptnonvatable = 0
+
+
     #receipt_date = datetime.now().isoformat()
     fdate = datetime.now()
     receipt_date = fdate.strftime("%Y-%m-%dT%H:%M:%S")
@@ -680,12 +718,14 @@ def send_invoice(AddCustomer, InvoiceFlag, Currency, BranchName, InvoiceNumber,
             tax_percent = float(15.00)
         elif vtype == "EXEMPT":
             tid = int(get_config_value("taxe"))
+            exemptnonvatable +=total
         elif vtype == "ZERO RATED":
             tid = int(get_config_value("tax0"))
             tcode = "B"
+            zerononvatable += total
 
-        if vat == 0:
-            nonvatable += total
+        #if vat == 0:
+        #    nonvatable += total
 
         add_or_update_tax_item(InvoiceFlag, taxes_item_list, tcode, tax_percent, tid, total, vat, vtype)
 
@@ -833,8 +873,10 @@ def send_invoice(AddCustomer, InvoiceFlag, Currency, BranchName, InvoiceNumber,
         if InvoiceFlag == 1:
             tax_amount = -tax_amount
             sales_tax = -sales_tax
-            nonvatable = -nonvatable
-        create_zreport(get_config_value("fiscal_day"),receipt_type, Currency, sales_plus_tax, sales_tax, tax_amount, nonvatable)
+            #nonvatable = -nonvatable
+            exemptnonvatable =-exemptnonvatable
+            zerononvatable = -zerononvatable
+        create_zreport(get_config_value("fiscal_day"),receipt_type, Currency, sales_plus_tax, sales_tax, tax_amount,zerononvatable,exemptnonvatable)
 
     return result
 

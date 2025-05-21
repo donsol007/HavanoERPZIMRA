@@ -15,7 +15,8 @@
   "column_break_qcxb",
   "vatable_net_amount",
   "vatable_tax",
-  "nonvatable_net",
+  "zerononvatablenet",
+  "exemptnonvatablenet",
   "amended_from"
  ],
  "fields": [
@@ -30,6 +31,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "default": "System Define",
    "fieldname": "currency",
    "fieldtype": "Data",
@@ -63,12 +65,6 @@
   },
   {
    "allow_on_submit": 1,
-   "default": "0",
-   "fieldname": "nonvatable_net",
-   "fieldtype": "Data",
-   "label": "NonVatable Net"
-  },
-  {
    "default": "System Define",
    "fieldname": "fiscal_day",
    "fieldtype": "Data",
@@ -93,13 +89,27 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "zerononvatablenet",
+   "fieldtype": "Data",
+   "label": "ZeroNonVatableNet"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "exemptnonvatablenet",
+   "fieldtype": "Data",
+   "label": "ExemptNonVatableNet"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-13 20:46:36.808860",
+ "modified": "2025-05-21 16:22:34.343413",
  "modified_by": "Administrator",
  "module": "Havanozimra",
  "name": "Openday",
