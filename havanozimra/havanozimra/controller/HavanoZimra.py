@@ -306,7 +306,7 @@ def open_fiscal_day() -> str:
         else:
             detail = response.json().get("detail", "")
             frappe.log_error(frappe.get_traceback(),"Open Fiscal Day request failed")
-            #frappe.log_error(frappe.get_traceback(),"Request status %s", detail)
+            frappe.log_error(frappe.get_traceback(),"Request status %s", detail)
             result = detail
     except Exception as ex:
         result = "Failed"
