@@ -170,6 +170,7 @@ def send_to_zimra(my_data: str, url: str) -> str:
 
     return result
 #======== SEND PRIVATE REQUEST =============
+@frappe.whitelist()
 def send_private_request(my_req_type: ReqType, req_method: str) -> str:
 
     base_url = get_config_value("server_url")
@@ -184,7 +185,7 @@ def send_private_request(my_req_type: ReqType, req_method: str) -> str:
     device_id = get_config_value("device_id")
     url_endpoint = endpoints[my_req_type].format(device_id)
     full_url = base_url.rstrip("/") + "/" + url_endpoint.lstrip("/")
-
+    print(full_url)
     # prepare SSL context with your .pfx certificate
     ssl_ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
     ssl_ctx.load_cert_chain(certfile=get_pem_cert_path(), keyfile=get_private_key_path())
@@ -196,13 +197,12 @@ def send_private_request(my_req_type: ReqType, req_method: str) -> str:
     }
 
     try:
-        
         with httpx.Client(verify=ssl_ctx) as client:
             resp =  client.request(req_method,full_url, headers=headers)
 
         text = resp.text
         #frappe.log_error(frappe.get_traceback(),f"Response from {full_url}: {text}")
-        
+        print(resp.content)
         if resp.is_success:
             payload = resp.json()
 
@@ -240,6 +240,7 @@ def send_private_request(my_req_type: ReqType, req_method: str) -> str:
                 return text
 
         else:
+            #print(text)
             frappe.log_error(frappe.get_traceback(),f"Request failed: {resp.status_code} {resp.reason_phrase}")
             return resp.reason_phrase
 
@@ -250,9 +251,11 @@ def send_private_request(my_req_type: ReqType, req_method: str) -> str:
 #========= OPEN FISCAL DAY ============
 @frappe.whitelist()
 def openday(docname):
-    
+    print("Checking day status....")
     msg = send_private_request(ReqType.Config, "GET")
     time.sleep(8)
+    print(msg)
+    print("Opeining day")
 
     resp = open_fiscal_day()
     time.sleep(6)
@@ -260,7 +263,7 @@ def openday(docname):
     #frappe.throw(msg)
 
 
-    
+@frappe.whitelist()    
 def open_fiscal_day() -> str:
     base_url = get_config_value("server_url")
     result = ""
@@ -286,8 +289,7 @@ def open_fiscal_day() -> str:
         }
 
         with httpx.Client(verify=ssl_ctx) as client:
-            response =  client.post(zimra_url,data=Openday_Data,headers=headers)
-
+            response =  client.post(zimra_url,content=Openday_Data,headers=headers)
         # log raw response
         #frappe.log_error(frappe.get_traceback(),"Raw response: %s", response.text)
         openday_date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -304,6 +306,7 @@ def open_fiscal_day() -> str:
             frappe.log_error(frappe.get_traceback(),"Open Fiscal Day request success")
             #frappe.log_error(frappe.get_traceback(),"Request status %s", result)
         else:
+            print(response.text)
             detail = response.json().get("detail", "")
             frappe.log_error(frappe.get_traceback(),"Open Fiscal Day request failed")
             frappe.log_error(frappe.get_traceback(),"Request status %s", detail)
