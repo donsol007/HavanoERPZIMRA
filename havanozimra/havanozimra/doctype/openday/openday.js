@@ -31,7 +31,7 @@ frappe.ui.form.on('Openday', {
                             });
                             frm.refresh();
                         }
-                    }, 700); // Adjust delay time here (in milliseconds)
+                    }, 1000); // Adjust delay time here (in milliseconds)
                 },
                 error: function(error) {
                     setTimeout(() => {
@@ -41,7 +41,7 @@ frappe.ui.form.on('Openday', {
                             indicator: 'red',
                             message: "Error opening fiscal day: " + error
                         });
-                    }, 700);
+                    }, 1000);
                 }
             });
         });

@@ -1,12 +1,10 @@
 import asyncio
 import httpx
-from pathlib import Path
 import ssl
 import os
 import json
-from configparser import ConfigParser
 from enum import Enum
-import datetime
+import time
 from xml.etree import ElementTree as ET
 from havanozimra.havanozimra.controller.InvoiceData import( receiptWrapper, ReceiptLine, ReceiptTax, CreditDebitNote,
     BuyerData, BuyerContacts, BuyerAddress ) 
@@ -14,7 +12,7 @@ from havanozimra.havanozimra.controller.CloseDay import (FiscalCounter,FiscalDay
 from typing import List
 from havanozimra.havanozimra.controller.ReceiptQRCodes import ReceiptQRCodes
 from havanozimra.havanozimra.controller.Signature import Signature
-import aiohttp
+#import aiohttp
 from dataclasses import asdict
 from datetime import datetime
 import qrcode
@@ -23,10 +21,6 @@ from io import BytesIO
 import random
 import frappe
 from frappe import _, msgprint, throw
-import time
-
-_config = ConfigParser()
-_config.read("havanoconfig.ini")
 
 class ReqType(Enum):
     GlobalNo = 1
@@ -66,13 +60,13 @@ def get_private_key_path() -> str:
 
 
 #=======CHECK INTERNET CONNECTION============
-def is_internet_available():
-    try:
-        with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session:
-            with session.get("http://www.google.com") as response:
-                return response.status == 200
-    except Exception:
-        return False
+# def is_internet_available():
+#     try:
+#         with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session:
+#             with session.get("http://www.google.com") as response:
+#                 return response.status == 200
+#     except Exception:
+#         return False
 #=========== UPDATE TAX ITEM ===============   
 
 def add_or_update_tax_item(invoice_flag, taxes_item_list, tax_code, tax_percent, tax_id, sales_amount_with_tax, tax_amount, vat_type):
@@ -170,7 +164,6 @@ def send_to_zimra(my_data: str, url: str) -> str:
 
     return result
 #======== SEND PRIVATE REQUEST =============
-@frappe.whitelist()
 def send_private_request(my_req_type: ReqType, req_method: str) -> str:
 
     base_url = get_config_value("server_url")
@@ -193,16 +186,17 @@ def send_private_request(my_req_type: ReqType, req_method: str) -> str:
     headers = {
         "accept": "application/json",
         "DeviceModelName": "Server",
-        "DeviceModelVersion": "v1",
+        "DeviceModelVersion": "v1"
     }
 
     try:
+        
         with httpx.Client(verify=ssl_ctx) as client:
-            resp =  client.request(req_method,full_url, headers=headers)
+            resp = client.request(req_method,full_url, headers=headers)
 
         text = resp.text
         #frappe.log_error(frappe.get_traceback(),f"Response from {full_url}: {text}")
-        print(resp.content)
+        print(text)
         if resp.is_success:
             payload = resp.json()
 
@@ -251,19 +245,15 @@ def send_private_request(my_req_type: ReqType, req_method: str) -> str:
 #========= OPEN FISCAL DAY ============
 @frappe.whitelist()
 def openday(docname):
-    print("Checking day status....")
     msg = send_private_request(ReqType.Config, "GET")
-    time.sleep(8)
-    print(msg)
-    print("Opeining day")
+    time.sleep(6)
 
     resp = open_fiscal_day()
     time.sleep(6)
     return resp
     #frappe.throw(msg)
 
-
-@frappe.whitelist()    
+  
 def open_fiscal_day() -> str:
     base_url = get_config_value("server_url")
     result = ""
@@ -276,7 +266,7 @@ def open_fiscal_day() -> str:
             return json.dumps("No Data found for Openday Request")
 
         zimra_url = f"{base_url}/Device/v1/{get_config_value('device_id')}/OpenDay"
-
+        print(zimra_url)
         # build SSL context and load your PFX
         ssl_ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
         ssl_ctx.load_cert_chain(certfile=get_pem_cert_path(), keyfile=get_private_key_path())
@@ -289,7 +279,7 @@ def open_fiscal_day() -> str:
         }
 
         with httpx.Client(verify=ssl_ctx) as client:
-            response =  client.post(zimra_url,content=Openday_Data,headers=headers)
+            response =  client.post(zimra_url,data=Openday_Data,headers=headers)
         # log raw response
         #frappe.log_error(frappe.get_traceback(),"Raw response: %s", response.text)
         openday_date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
